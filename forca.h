@@ -54,6 +54,8 @@ void limparTela()
 #define MAX_CHAR 200
 
 typedef struct node{
+    int tamanhoPalavra;
+    int quantidadeLetras;
     char nome[MAX_CHAR];
     char dica[MAX_CHAR];
     short int jaUsada;
@@ -71,6 +73,19 @@ void retornarValoresCSV(char *linha, char **retorno)
     token = strtok(NULL, "\n");
     retorno[1] = calloc(strlen(token), sizeof(char));
     strcpy(retorno[1], token);
+}
+
+int retornarQuantidadeLetras(const char *palavra)
+{
+    int i;
+    int total = 0;
+    for (i = 0; palavra[i] != '\0'; i++) {
+        if (palavra[i] != ' ' || palavra[i] != '-') {
+            total++;
+        }
+    }
+
+    return total;
 }
 
 node* retornarNovoNo(char *linha)
@@ -93,6 +108,9 @@ node* retornarNovoNo(char *linha)
 
     retornarValoresCSV(linha, palavraDica);
     node *p = (node*) calloc(1, sizeof(node));
+
+    p->tamanhoPalavra = strlen(palavraDica[0]);
+    p->quantidadeLetras = retornarQuantidadeLetras(palavraDica[0]);
 
     strcpy(p->nome, palavraDica[0]);
     strcpy(p->dica, palavraDica[1]);
@@ -208,23 +226,52 @@ void apagarLista(node *no)
     free(no);
 }
 
-void joguinho(const node *retorno, char *palavraSorteada, int tamanhoPalavra)
+void imprimirBoneco(int erro)
+{
+    if (! erro) {
+        printf("\nPor enquanto tá vivo \n\n");
+        return;
+    }
+
+    if (erro >= 1) {
+        printf("    O    \n");
+    }
+
+    if (erro == 2) {
+        printf("    |    \n");
+    }
+
+    if (erro == 3) {
+        printf("   /|    \n");
+    }
+
+    if (erro >= 4) {
+        printf("   /|\\   \n");
+    }
+
+    if (erro >= 5) {
+        printf("   /     \n");
+    }
+}
+
+void joguinho(const node *retorno, char *palavraSorteada)
 {
     char letra;
-    int erro, i;
     int totalAcerto = 0;
     int totalErros = 0;
     while (totalErros < TOTAL_TENTATIVAS) {
         limparTela();
         printf("============= FORCA ==================\n");
-        printf("Palavra: %s (%d letras)\n", palavraSorteada, tamanhoPalavra);
+        imprimirBoneco(totalErros);
+        printf("======================================\n");
+        printf("Palavra: %s (%d letras)\n", palavraSorteada, retorno->quantidadeLetras);
         printf("Dica: %s\n", retorno->dica);
-        printf("Total de erros: %d\n", totalErros);
 
-        erro = 1;
+        int i;
+        int erro = 1;
         printf("Digite uma letra: ");
-        scanf(" %c", &letra);
-        for (i = 0; i < tamanhoPalavra; ++i) {
+        scanf(" %[^\n]c", &letra);
+        for (i = 0; i < retorno->tamanhoPalavra; ++i) {
             if (tolower(retorno->nome[i]) == letra) {
                 totalAcerto++;
                 erro = 0;
@@ -233,7 +280,6 @@ void joguinho(const node *retorno, char *palavraSorteada, int tamanhoPalavra)
         }
 
         if (erro) {
-            printf("eroooou\n");
             totalErros++;
         }
 
@@ -244,6 +290,8 @@ void joguinho(const node *retorno, char *palavraSorteada, int tamanhoPalavra)
             printf("Você foi enforcado, tente na próxima\n");
             printf("A palavra era: %s\n", retorno->nome);
         }
+
+        printf("\n\n");
     }
 }
 
@@ -262,9 +310,8 @@ int rodarJogo()
         node retorno = retornarElemento(listaPalavras, numeroAleatorioRange(0, totalElementos - 1));
 
         int i;
-        int tamanhoPalavra = (int) strlen(retorno.nome);
         char palavraSorteada[MAX_CHAR];
-        for (i = 0; i < tamanhoPalavra; i++) {
+        for (i = 0; i < retorno.tamanhoPalavra; i++) {
             palavraSorteada[i] = ' ';
             if (retorno.nome[i] != ' ') {
                 palavraSorteada[i] = '_';
@@ -273,7 +320,7 @@ int rodarJogo()
             palavraSorteada[i + 1] = '\0';
         }
 
-        joguinho(&retorno, palavraSorteada, tamanhoPalavra);
+        joguinho(&retorno, palavraSorteada);
 
         break;
     }
