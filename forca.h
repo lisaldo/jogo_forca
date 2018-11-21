@@ -14,12 +14,10 @@
 
 extern int errno;
 
-#define TOTAL_TENTATIVAS 6
-
 #ifdef WIN32
 
 #include <windows.h>
-double get_time()
+double getTime()
 {
     LARGE_INTEGER t, f;
     QueryPerformanceCounter(&t);
@@ -36,7 +34,7 @@ void limparTela()
 
 #include <sys/time.h>
 #include <sys/resource.h>
-double get_time()
+double getTime()
 {
     struct timeval t;
     struct timezone tzp;
@@ -52,6 +50,8 @@ void limparTela()
 #endif
 
 #define MAX_CHAR 200
+#define TOTAL_TENTATIVAS 6
+#define NOME_ARQUIVO "palavras.csv"
 
 typedef struct node{
     int tamanhoPalavra;
@@ -80,7 +80,8 @@ int retornarQuantidadeLetras(const char *palavra)
     int i;
     int total = 0;
     for (i = 0; palavra[i] != '\0'; i++) {
-        if (palavra[i] != ' ' || palavra[i] != '-') {
+        if (palavra[i] != ' ' && palavra[i] != '-') {
+            printf("Letra: '%c'\n", palavra[i]);
             total++;
         }
     }
@@ -127,8 +128,11 @@ node retornarElemento(node *no, int numero)
 {
     int i = 0;
     node *novoNo = no;
-    while (novoNo && ! novoNo->jaUsada && numero > i) {
-        i++;
+    while (novoNo && numero > i) {
+        if (! novoNo->jaUsada) {
+            i++;
+        }
+
         novoNo = novoNo->px;
     }
 
@@ -154,7 +158,7 @@ int numeroAleatorio(void)
 {
     double retorno;
     double valorMuitoGrande = 959598903;
-    double seed = 1000000 * (valorMuitoGrande - get_time());
+    double seed = 1000000 * (valorMuitoGrande - getTime());
     srand((unsigned int) seed);
     double x,y,rsq,f;
     do {
@@ -172,6 +176,7 @@ int numeroAleatorio(void)
 
 int numeroAleatorioRange(int menor, int maior)
 {
+    maior--;
     int retorno = ((numeroAleatorio() % (maior - menor + 1)) + menor);
 
     return retorno;
@@ -184,7 +189,7 @@ int carregarListaPalavras(node **listaPalavras)
 
 
     FILE *fp = NULL;
-    fp = fopen("palavras.csv", "r");
+    fp = fopen(NOME_ARQUIVO, "r");
     if(! fp) {
         fprintf(stderr, "Value of errno: %d\n", errno);
         fprintf(stderr, "Error opening file: %s\n", strerror(errno));
@@ -228,100 +233,138 @@ void apagarLista(node *no)
 
 void imprimirBoneco(int erro)
 {
+    printf("============= FORCA ==================\n");
     if (! erro) {
         printf("\nPor enquanto tá vivo \n\n");
-        return;
     }
 
     if (erro >= 1) {
-        printf("    O    \n");
+        printf("     O    \n");
     }
 
     if (erro == 2) {
-        printf("    |    \n");
+        printf("     |    \n");
     }
 
     if (erro == 3) {
-        printf("   /|    \n");
+        printf("    /|    \n");
     }
 
     if (erro >= 4) {
-        printf("   /|\\   \n");
+        printf("    /|\\   \n");
     }
 
-    if (erro >= 5) {
-        printf("   /     \n");
+    if (erro == 5) {
+        printf("    /     \n");
     }
+
+    if (erro >= 6) {
+        printf("    /¨\\   \n");
+    }
+
+    printf("======================================\n");
 }
 
-void joguinho(const node *retorno, char *palavraSorteada)
+void imprimirPalavra(const node *retorno, const char *palavraSorteada)
+{
+    printf("Palavra: %s (%d letras)\n", palavraSorteada, retorno->quantidadeLetras);
+    printf("Dica: %s\n", retorno->dica);
+}
+
+int escolherLetra(const node *retorno, char *palavraSorteada)
 {
     char letra;
+    int i;
+    int acertou = 0;
+    printf("Digite uma letra: ");
+    scanf(" %c%*c", &letra);
+    for (i = 0; i < retorno->tamanhoPalavra; ++i) {
+        if (tolower(retorno->nome[i]) == letra && palavraSorteada[i] != letra) {
+            acertou++;
+            palavraSorteada[i] = retorno->nome[i];
+        }
+    }
+
+    return acertou;
+}
+
+void iniciarForca(const node *retorno, char *palavraSorteada)
+{
+    int acertos = 0;
     int totalAcerto = 0;
     int totalErros = 0;
     while (totalErros < TOTAL_TENTATIVAS) {
         limparTela();
-        printf("============= FORCA ==================\n");
         imprimirBoneco(totalErros);
-        printf("======================================\n");
-        printf("Palavra: %s (%d letras)\n", palavraSorteada, retorno->quantidadeLetras);
-        printf("Dica: %s\n", retorno->dica);
+        imprimirPalavra(retorno, palavraSorteada);
 
-        int i;
-        int erro = 1;
-        printf("Digite uma letra: ");
-        scanf(" %[^\n]c", &letra);
-        for (i = 0; i < retorno->tamanhoPalavra; ++i) {
-            if (tolower(retorno->nome[i]) == letra) {
-                totalAcerto++;
-                erro = 0;
-                palavraSorteada[i] = retorno->nome[i];
-            }
-        }
-
-        if (erro) {
+        acertos = escolherLetra(retorno, palavraSorteada);
+        if (! acertos) {
             totalErros++;
         }
 
-        if (totalAcerto == strlen(palavraSorteada)) {
+        totalAcerto += acertos;
+        if (totalAcerto == retorno->quantidadeLetras) {
+            limparTela();
+            imprimirBoneco(totalErros);
+            imprimirPalavra(retorno, palavraSorteada);
             printf("Parabéns, você acertou!!!\n");
             break;
         } else if (totalErros >= TOTAL_TENTATIVAS) {
+            limparTela();
+            imprimirBoneco(totalErros);
             printf("Você foi enforcado, tente na próxima\n");
             printf("A palavra era: %s\n", retorno->nome);
+            break;
+        }
+    }
+}
+
+void mascararPalavra(const node* retorno, char *palavraSorteada)
+{
+    int i;
+    for (i = 0; i < retorno->tamanhoPalavra; i++) {
+        if (retorno->nome[i] == ' ' || retorno->nome[i] == '-') {
+            palavraSorteada[i] = retorno->nome[i];
+        } else {
+            palavraSorteada[i] = '_';
         }
 
-        printf("\n\n");
+        palavraSorteada[i + 1] = '\0';
     }
 }
 
 int rodarJogo()
 {
-    node *listaPalavras = NULL;
     int totalElementos = 0;
+    char resposta;
+    char palavraSorteada[MAX_CHAR];
+    node *listaPalavras = NULL;
     totalElementos = carregarListaPalavras(&listaPalavras);
-    if (totalElementos <= 0) {
-        printf("Não foram encontradas palavras no arquivo palavras.csv\n");
-        return -1;
-    }
 
     while (1) {
-        totalElementos--;
-        node retorno = retornarElemento(listaPalavras, numeroAleatorioRange(0, totalElementos - 1));
-
-        int i;
-        char palavraSorteada[MAX_CHAR];
-        for (i = 0; i < retorno.tamanhoPalavra; i++) {
-            palavraSorteada[i] = ' ';
-            if (retorno.nome[i] != ' ') {
-                palavraSorteada[i] = '_';
-            }
-
-            palavraSorteada[i + 1] = '\0';
+        if (totalElementos <= 0) {
+            printf("Não foram encontradas palavras no arquivo %s\n", NOME_ARQUIVO);
+            return -1;
         }
 
-        joguinho(&retorno, palavraSorteada);
+        node retorno = retornarElemento(listaPalavras, numeroAleatorioRange(0, totalElementos));
+        if (! strcmp(retorno.nome, "vazio")) {
+            printf("Não foram encontradas palavras no arquivo palavras.csv\n");
+            return -1;
+        }
 
+        mascararPalavra(&retorno, palavraSorteada);
+        iniciarForca(&retorno, palavraSorteada);
+
+        printf("Digite 's' para continuar jogando: ");
+        scanf(" %c%*c", &resposta);
+        if (tolower(resposta) == 's') {
+            totalElementos--;
+            continue;
+        }
+
+        printf("Tchaaaau!!!!\n");
         break;
     }
 

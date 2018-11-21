@@ -1,9 +1,9 @@
 #include "forca.h"
+#include <locale.h>
 
 int main()
 {
-	int retorno;
-    retorno = rodarJogo();
-
-    return retorno;
+	setlocale(LC_ALL, "Portuguese");
+    rodarJogo();
+    return 0;
 }
