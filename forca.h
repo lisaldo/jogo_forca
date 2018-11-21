@@ -278,6 +278,7 @@ int escolherLetra(const node *retorno, char *palavraSorteada)
     int acertou = 0;
     printf("Digite uma letra: ");
     scanf(" %c%*c", &letra);
+    letra = tolower(letra);
     for (i = 0; i < retorno->tamanhoPalavra; ++i) {
         if (tolower(retorno->nome[i]) == letra && palavraSorteada[i] != letra) {
             acertou++;
