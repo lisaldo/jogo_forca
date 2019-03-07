@@ -7,24 +7,21 @@
 
 extern int errno;
 
-void retornarValoresCSV(char *linha, char **retorno)
+void retornarValoresCSV(char *linha, dicaPalavra *retorno)
 {
     char *token;
-    token = strtok(linha, ",");
 
-    retorno[0] = calloc(strlen(token), sizeof(char));
-    strcpy(retorno[0], token);
+    token = strtok(linha, ",");
+    strcpy(retorno->palavra, token);
 
     token = strtok(NULL, "\n");
-    retorno[1] = calloc(strlen(token), sizeof(char));
-    strcpy(retorno[1], token);
+    strcpy(retorno->dica, token);
 }
 
 short int possuiVirgula(const char *linha)
 {
 	short int i = 0;
 	for (i = 0; i < strlen(linha); i++) {
-		printf("%s\n", linha);
 	    if (',' == linha[i]) {
 	        return 1;
 	    }
@@ -47,6 +44,7 @@ int carregarListaPalavras(node **listaPalavras, const char* nomeArquivo)
         return errno;
     }
 
+    dicaPalavra palavras;
     while (fgets(linha, MAX_CHAR, fp)) {
         totalElementos++;
 
@@ -56,15 +54,11 @@ int carregarListaPalavras(node **listaPalavras, const char* nomeArquivo)
 		    return errno;
 		}
 
-		char *palavraDica[2];
 
-		retornarValoresCSV(linha, palavraDica);
-		node *palavra = retornarNovoNo(palavraDica);
+		retornarValoresCSV(linha, &palavras);
+		node *palavra = retornarNovoNo(&palavras);
         palavra->px = (*listaPalavras);
         (*listaPalavras) = palavra;
-
-        free(palavraDica[0]);
-		free(palavraDica[1]);
     }
 
     fclose(fp);

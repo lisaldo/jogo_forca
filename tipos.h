@@ -14,6 +14,11 @@ typedef struct node{
     struct node *px;
 } node;
 
+typedef struct {
+    char dica[MAX_CHAR];
+    char palavra[MAX_CHAR];
+} dicaPalavra;
+
 node retornaNoVazio()
 {
     node retorno;
@@ -38,15 +43,15 @@ int retornarQuantidadeLetras(const char *palavra)
     return total;
 }
 
-node* retornarNovoNo(char **palavraDica)
+node* retornarNovoNo(const dicaPalavra *palavras)
 {
 	node *p = (node*) calloc(1, sizeof(node));
 
-	p->tamanhoPalavra = strlen(palavraDica[0]);
-	p->quantidadeLetras = retornarQuantidadeLetras(palavraDica[0]);
+	p->tamanhoPalavra = strlen(palavras->palavra);
+	p->quantidadeLetras = retornarQuantidadeLetras(palavras->palavra);
 
-	strcpy(p->nome, palavraDica[0]);
-	strcpy(p->dica, palavraDica[1]);
+	strcpy(p->nome, palavras->palavra);
+	strcpy(p->dica, palavras->dica);
 	p->jaUsada = 0;
 	p->px = NULL;
 
