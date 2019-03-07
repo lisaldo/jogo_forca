@@ -26,7 +26,6 @@ node retornarElemento(node *no, int numero)
 
     numero--;
     while (novoNo) {
-        printf("Palavra: %s\njaUsada: %d\n", novoNo->nome, novoNo->jaUsada);
         if (novoNo->jaUsada) {
             novoNo = novoNo->px;
             continue;

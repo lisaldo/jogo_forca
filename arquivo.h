@@ -6,7 +6,7 @@
 void retornarValoresCSV(char *linha, char **retorno)
 {
     char *token;
-    token = strtok(linha, ";");
+    token = strtok(linha, ",");
 
     retorno[0] = calloc(strlen(token), sizeof(char));
     strcpy(retorno[0], token);
@@ -14,6 +14,19 @@ void retornarValoresCSV(char *linha, char **retorno)
     token = strtok(NULL, "\n");
     retorno[1] = calloc(strlen(token), sizeof(char));
     strcpy(retorno[1], token);
+}
+
+short int possuiVirgula(const char *linha)
+{
+	short int possuiVirgula = 0;
+	short int i = 0;
+	for (i = 0; i < strlen(linha); i++) {
+	    if (',' == linha[i]) {
+	        possuiVirgula = 1;
+	    }
+	}
+
+	return possuiVirgula;
 }
 
 int carregarListaPalavras(node **listaPalavras, const char* nomeArquivo)
@@ -33,15 +46,7 @@ int carregarListaPalavras(node **listaPalavras, const char* nomeArquivo)
     while (fgets(linha, MAX_CHAR, fp)) {
         totalElementos++;
 
-		short int possuiPontoVirgula = 0;
-		short int i = 0;
-		for (i = 0; i < strlen(linha); i++) {
-		    if (';' == linha[i]) {
-		        possuiPontoVirgula = 1;
-		    }
-		}
-
-		if (! possuiPontoVirgula) {
+		if (! possuiVirgula(linha)) {
 		    fprintf(stderr, "Value of errno: %d\n", errno);
 		    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
 		    continue;
