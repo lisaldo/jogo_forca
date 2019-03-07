@@ -4,6 +4,5 @@
 int main()
 {
 	setlocale(LC_ALL, "Portuguese");
-    rodarJogo();
-    return 0;
+    return rodarJogo();
 }
