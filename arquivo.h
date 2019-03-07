@@ -1,7 +1,11 @@
 #ifndef __ARQUIVO_H__
 #define __ARQUIVO_H__
 
+#include <errno.h>
+
 #include "tipos.h"
+
+extern int errno;
 
 void retornarValoresCSV(char *linha, char **retorno)
 {
@@ -18,15 +22,15 @@ void retornarValoresCSV(char *linha, char **retorno)
 
 short int possuiVirgula(const char *linha)
 {
-	short int possuiVirgula = 0;
 	short int i = 0;
 	for (i = 0; i < strlen(linha); i++) {
+		printf("%s\n", linha);
 	    if (',' == linha[i]) {
-	        possuiVirgula = 1;
+	        return 1;
 	    }
 	}
 
-	return possuiVirgula;
+	return 0;
 }
 
 int carregarListaPalavras(node **listaPalavras, const char* nomeArquivo)
@@ -40,7 +44,7 @@ int carregarListaPalavras(node **listaPalavras, const char* nomeArquivo)
     if(! fp) {
         fprintf(stderr, "Value of errno: %d\n", errno);
         fprintf(stderr, "Error opening file: %s\n", strerror(errno));
-        return -1;
+        return errno;
     }
 
     while (fgets(linha, MAX_CHAR, fp)) {
@@ -49,7 +53,7 @@ int carregarListaPalavras(node **listaPalavras, const char* nomeArquivo)
 		if (! possuiVirgula(linha)) {
 		    fprintf(stderr, "Value of errno: %d\n", errno);
 		    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
-		    continue;
+		    return errno;
 		}
 
 		char *palavraDica[2];

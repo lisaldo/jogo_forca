@@ -10,14 +10,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
-#include <errno.h>
 
 #include "tipos.h"
 #include "arquivo.h"
 #include "cross_sistema.h"
 #include "numeros.h"
-
-extern int errno;
 
 node retornarElemento(node *no, int numero)
 {
